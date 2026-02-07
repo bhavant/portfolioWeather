@@ -7,7 +7,7 @@ import path from 'path';
 // - alias: '@' maps to src/ for clean imports
 export default defineConfig({
   plugins: [react()],
-  base: './',
+  base: '/portfolioWeather/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
