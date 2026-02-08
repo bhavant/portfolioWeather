@@ -71,30 +71,48 @@ export async function fetchForecast(query: string): Promise<{
  * @returns Array of up to 5 DayForecast objects
  */
 export function transformForecastData(items: OWMForecastItem[]): DayForecast[] {
-  // Group forecast items by date (YYYY-MM-DD)
+  // Get today's date in local timezone (YYYY-MM-DD)
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  // Group forecast items by LOCAL date, not UTC date.
+  // OWM dt_txt is UTC; convert to local date for correct day grouping.
   const groupedByDate = new Map<string, OWMForecastItem[]>();
 
   for (const item of items) {
-    // Extract date portion from "2024-01-15 12:00:00"
-    const date = item.dt_txt.split(' ')[0];
-    const existing = groupedByDate.get(date) || [];
+    // Convert UTC timestamp to local date string
+    const localDate = new Date(item.dt * 1000);
+    const dateKey = `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, '0')}-${String(localDate.getDate()).padStart(2, '0')}`;
+
+    const existing = groupedByDate.get(dateKey) || [];
     existing.push(item);
-    groupedByDate.set(date, existing);
+    groupedByDate.set(dateKey, existing);
   }
 
-  // Transform each group into a DayForecast
+  // Ensure today is always the first key even if OWM skipped it
+  // (happens very late at night when next slot is past midnight UTC)
+  const sortedDates = Array.from(groupedByDate.keys()).sort();
+  if (sortedDates.length > 0 && sortedDates[0] > todayStr) {
+    // OWM has no entries for today; insert today placeholder from first available entry
+    const firstItem = items[0];
+    groupedByDate.set(todayStr, [firstItem]);
+    sortedDates.unshift(todayStr);
+  }
+
+  // Transform each group into a DayForecast, limit to 6 (today + 5 upcoming)
   const forecasts: DayForecast[] = [];
 
-  for (const [date, dayItems] of groupedByDate) {
-    // Skip if we already have 5 days
-    if (forecasts.length >= 5) break;
+  for (const date of sortedDates) {
+    if (forecasts.length >= 6) break;
+
+    const dayItems = groupedByDate.get(date)!;
 
     // Calculate aggregated values for the day
     const temps = dayItems.map((item) => item.main.temp);
     const humidities = dayItems.map((item) => item.main.humidity);
     const winds = dayItems.map((item) => item.wind.speed);
 
-    // Use the midday entry (or last entry) for representative condition
+    // Use the midday entry (or middle entry) for representative condition
     const midday =
       dayItems.find((item) => item.dt_txt.includes('12:00:00')) ||
       dayItems[Math.floor(dayItems.length / 2)];

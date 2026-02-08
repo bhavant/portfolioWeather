@@ -43,7 +43,7 @@ describe('fetchForecast', () => {
 
     // Verify response shape
     expect(result.cityName).toBe('Austin, US');
-    expect(result.forecast).toHaveLength(5);
+    expect(result.forecast.length).toBeGreaterThanOrEqual(5);
     expect(result.forecast[0]).toHaveProperty('date');
     expect(result.forecast[0]).toHaveProperty('dayName');
     expect(result.forecast[0]).toHaveProperty('hourly');
@@ -77,8 +77,9 @@ describe('transformForecastData', () => {
     const mockResponse = createMockOWMResponse();
     const result = transformForecastData(mockResponse.list);
 
-    // Should produce 5 days
-    expect(result).toHaveLength(5);
+    // Should produce 5 or 6 days (today + up to 5 upcoming)
+    expect(result.length).toBeGreaterThanOrEqual(5);
+    expect(result.length).toBeLessThanOrEqual(6);
 
     // Each day should have hourly entries
     result.forEach((day) => {
@@ -91,20 +92,23 @@ describe('transformForecastData', () => {
     });
   });
 
-  it('limits output to 5 days even with more data', () => {
+  it('limits output to at most 6 days (today + 5 upcoming)', () => {
     const mockResponse = createMockOWMResponse();
-    // Add extra items for a 6th day
-    const extraDate = '2024-01-20';
-    for (let h = 0; h < 8; h++) {
-      mockResponse.list.push(
-        createMockOWMItem({
-          dt_txt: `${extraDate} ${String(h * 3).padStart(2, '0')}:00:00`,
-        })
-      );
+    // Add extra items for a 6th and 7th day
+    for (let d = 0; d < 2; d++) {
+      const extraDate = `2024-01-${20 + d}`;
+      for (let h = 0; h < 8; h++) {
+        mockResponse.list.push(
+          createMockOWMItem({
+            dt: Math.floor(new Date(`${extraDate}T${String(h * 3).padStart(2, '0')}:00:00`).getTime() / 1000),
+            dt_txt: `${extraDate} ${String(h * 3).padStart(2, '0')}:00:00`,
+          })
+        );
+      }
     }
 
     const result = transformForecastData(mockResponse.list);
-    expect(result).toHaveLength(5);
+    expect(result.length).toBeLessThanOrEqual(6);
   });
 
   it('uses midday entry for representative condition', () => {
@@ -167,7 +171,8 @@ describe('transformHourlyItem', () => {
 describe('getDayName', () => {
   it('returns "Today" for today\'s date', () => {
     const today = new Date();
-    const dateStr = today.toISOString().split('T')[0];
+    // Use local date (not UTC) to match getDayName's comparison
+    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     expect(getDayName(dateStr)).toBe('Today');
   });
 

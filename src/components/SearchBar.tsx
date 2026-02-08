@@ -51,13 +51,13 @@ export function SearchBar({ onSearch, loading }: SearchBarProps) {
             placeholder="Enter US city or zip code..."
             aria-label="Search city or zip code"
             aria-invalid={showError}
-            className={`w-full px-4 py-3 rounded-lg bg-white/20 backdrop-blur-sm
-                       border placeholder-white/60 text-inherit
-                       focus:outline-none focus:ring-2 focus:ring-white/50
+            className={`w-full px-4 py-3 rounded-lg bg-white/30 backdrop-blur-sm
+                       border placeholder-gray-600 text-gray-900
+                       focus:outline-none focus:ring-2 focus:ring-gray-800/40
                        transition-all duration-200
                        ${showError
-                         ? 'border-red-400/60 focus:ring-red-400/50'
-                         : 'border-white/30'
+                         ? 'border-red-500/60 focus:ring-red-500/50'
+                         : 'border-gray-400/40'
                        }`}
           />
         </div>
@@ -67,8 +67,8 @@ export function SearchBar({ onSearch, loading }: SearchBarProps) {
           type="submit"
           disabled={!canSubmit}
           className="px-6 py-3 rounded-lg font-medium transition-all duration-200
-                     bg-white/25 backdrop-blur-sm border border-white/30
-                     hover:bg-white/35 active:scale-95
+                     bg-gray-900/80 text-white backdrop-blur-sm border border-gray-700/30
+                     hover:bg-gray-900 active:scale-95
                      disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
         >
           {loading ? (
@@ -82,7 +82,7 @@ export function SearchBar({ onSearch, loading }: SearchBarProps) {
 
       {/* Validation error hint */}
       {showError && (
-        <p className="mt-2 text-sm text-red-300 animate-fade-in" role="alert">
+        <p className="mt-2 text-sm text-red-700 animate-fade-in" role="alert">
           Please enter a valid US city name (e.g. &quot;Austin, TX&quot;) or
           5-digit zip code.
         </p>

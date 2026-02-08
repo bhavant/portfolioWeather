@@ -111,7 +111,7 @@ describe('WeatherContext', () => {
       expect(screen.getByTestId('loading')).toHaveTextContent('false');
     });
 
-    expect(screen.getByTestId('forecast-count')).toHaveTextContent('5');
+    expect(Number(screen.getByTestId('forecast-count').textContent)).toBeGreaterThanOrEqual(5);
     expect(screen.getByTestId('city')).toHaveTextContent('Austin, US');
     expect(screen.getByTestId('error')).toHaveTextContent('none');
   });
@@ -281,7 +281,7 @@ describe('WeatherContext', () => {
     // First fetch data
     await user.click(screen.getByText('Fetch Austin'));
     await waitFor(() => {
-      expect(screen.getByTestId('forecast-count')).toHaveTextContent('5');
+      expect(Number(screen.getByTestId('forecast-count').textContent)).toBeGreaterThanOrEqual(5);
     });
 
     // Select a day
@@ -305,7 +305,7 @@ describe('WeatherContext', () => {
 
     await user.click(screen.getByText('Fetch Austin'));
     await waitFor(() => {
-      expect(screen.getByTestId('forecast-count')).toHaveTextContent('5');
+      expect(Number(screen.getByTestId('forecast-count').textContent)).toBeGreaterThanOrEqual(5);
     });
 
     await user.click(screen.getByText('Select Day'));

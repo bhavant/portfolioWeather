@@ -6,17 +6,19 @@
  * gradient based on the current weather condition.
  *
  * Layout:
- *   1. Title: "Welcome to Weather Informer"
+ *   1. Title: "Welcome to Weather Informer" (large)
  *   2. SearchBar for city/zip input
  *   3. RecentSearches horizontal pill list
- *   4. ForecastCards grid (5-day forecast)
- *   5. WeatherModal overlay (when a card is clicked)
- *   6. ErrorMessage banner (on API/validation errors)
+ *   4. TodayCard - large featured card for today's weather
+ *   5. ForecastCards grid - next days forecast
+ *   6. WeatherModal overlay (when a card is clicked)
+ *   7. ErrorMessage banner (on API/validation errors)
  */
 
 import { WeatherProvider, useWeather } from './context/WeatherContext';
 import { SearchBar } from './components/SearchBar';
 import { RecentSearches } from './components/RecentSearches';
+import { TodayCard } from './components/TodayCard';
 import { ForecastCards } from './components/ForecastCards';
 import { WeatherModal } from './components/WeatherModal';
 import { ErrorMessage } from './components/ErrorMessage';
@@ -46,18 +48,22 @@ function WeatherDashboard() {
   const theme = getThemeForCondition(currentCondition);
   const gradientClass = buildGradientClass(theme);
 
+  // Split forecast into today (first entry) and remaining days
+  const todayForecast = forecast && forecast.length > 0 ? forecast[0] : null;
+  const upcomingForecast = forecast && forecast.length > 1 ? forecast.slice(1) : [];
+
   return (
     <div
       className={`min-h-screen ${gradientClass} ${theme.textColor}
                   transition-all duration-700 ease-in-out`}
     >
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Header section */}
+        {/* Header section - larger title with dark text */}
         <header className="text-center mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold mb-2 tracking-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-2 tracking-tight">
             Welcome to Weather Informer
           </h1>
-          <p className="text-sm opacity-70">
+          <p className="text-base opacity-70">
             Search any US city or zip code for a 5-day forecast
           </p>
         </header>
@@ -78,16 +84,33 @@ function WeatherDashboard() {
         {/* Loading state */}
         {loading && <LoadingSpinner />}
 
-        {/* Forecast cards */}
+        {/* Weather display: Today (large) + upcoming days (smaller) */}
         {!loading && forecast && forecast.length > 0 && (
-          <div className="mt-8">
+          <div className="mt-8 flex flex-col">
             {/* City name display */}
             {cityName && (
-              <h2 className="text-center text-xl font-semibold mb-4 opacity-90">
+              <h2 className="text-center text-xl font-semibold mb-6 opacity-90">
                 {cityName}
               </h2>
             )}
-            <ForecastCards forecast={forecast} onCardClick={selectDay} />
+
+            {/* Row 1: Today's weather - large featured card */}
+            {todayForecast && (
+              <TodayCard
+                day={todayForecast}
+                onClick={() => selectDay(todayForecast)}
+              />
+            )}
+
+            {/* Row 2: Upcoming days - smaller cards */}
+            {upcomingForecast.length > 0 && (
+              <div className="mt-6">
+                <ForecastCards
+                  forecast={upcomingForecast}
+                  onCardClick={selectDay}
+                />
+              </div>
+            )}
           </div>
         )}
 
